@@ -15,5 +15,7 @@ namespace Lab_1.Models
         public string Author { get; set; }
         [Required]
         public string PubliserHouse { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "The price should be greather than {0}")]
+        public double Price { get; set;  }
     }
 }
