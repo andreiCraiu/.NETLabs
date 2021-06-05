@@ -21,15 +21,19 @@ namespace Lab_2.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-   
-
+        
         public TasksController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        // GET: api/Tasks
+        // GET: api/Tasks/DateFrom/DateTo
+        // DateFrom: start filter date time
+        // DateTo: stop filter date time
+        /// <summary>
+        /// Get a list of tasks filter by date.
+        /// </summary>
         [HttpGet("{from}/{to}")]
         public ActionResult<IEnumerable<TaskViewModel>> GetTasks(DateTime DateFrom, DateTime DateTo)
         {
@@ -39,14 +43,22 @@ namespace Lab_2.Controllers
             return tasksViewModel.ToList();
         }
 
+        // GET: api/Tasks
+        /// <summary>
+        ///Get list of Task.
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks()
+        public async Task<ActionResult<IEnumerable<TaskViewModel>>> GetTasks()
         {
-
-            return await _context.Tasks.ToListAsync();
+            var tasks = await _context.Tasks.ToListAsync();
+            var tasksViewModel = _mapper.Map<IEnumerable<Models.Task>, IEnumerable<TaskViewModel>>(tasks);
+            return tasksViewModel.ToList();
         }
 
         // GET: api/Tasks/5
+        /// <summary>
+        /// Get a specific Task by id.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskViewModel>> GetTask(int id)
         {
@@ -64,6 +76,10 @@ namespace Lab_2.Controllers
 
         // PUT: api/Tasks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Put a specific Task.
+        /// Check if task Id exists.
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTask(int id, Models.Task task)
         {
@@ -72,7 +88,8 @@ namespace Lab_2.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(task).State = EntityState.Modified;
+             var taskVieModel = _mapper.Map<Models.Task>(task);
+            _context.Entry(taskVieModel).State = EntityState.Modified;
 
             try
             {
@@ -95,16 +112,23 @@ namespace Lab_2.Controllers
 
         // POST: api/Tasks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update a specific Task.
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
         {
-            _context.Tasks.Add(task);
+            var taskVieModel = _mapper.Map<Models.Task>(task);
+            _context.Tasks.Add(taskVieModel);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetTask", new { id = task.ID }, task);
         }
 
         // DELETE: api/Tasks/5
+        /// <summary>
+        /// Deletes a specific Task.
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
@@ -114,7 +138,8 @@ namespace Lab_2.Controllers
                 return NotFound();
             }
 
-            _context.Tasks.Remove(task);
+            var taskVieModel = _mapper.Map<Models.Task>(task);
+            _context.Tasks.Remove(taskVieModel);
             await _context.SaveChangesAsync();
 
             return NoContent();
