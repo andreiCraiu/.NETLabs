@@ -8,5 +8,6 @@ namespace Lab_2.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public List<UserTaskAssigned> UserTaskAssigneds { get; set; }
     }
 }

@@ -221,6 +221,29 @@ namespace Lab_2.Data.Migrations
                     b.ToTable("Tasks");
                 });
 
+            modelBuilder.Entity("Lab_2.Models.UserTaskAssigned", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ApplicationUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ApplicationUserId1")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateAssigned")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ApplicationUserId1");
+
+                    b.ToTable("UserTaskAssigneds");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -356,6 +379,28 @@ namespace Lab_2.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("TaskUserTaskAssigned", b =>
+                {
+                    b.Property<int>("TasksID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserTaskAssignedsID")
+                        .HasColumnType("int");
+
+                    b.HasKey("TasksID", "UserTaskAssignedsID");
+
+                    b.HasIndex("UserTaskAssignedsID");
+
+                    b.ToTable("TaskUserTaskAssigned");
+                });
+
+            modelBuilder.Entity("Lab_2.Models.UserTaskAssigned", b =>
+                {
+                    b.HasOne("Lab_2.Models.ApplicationUser", null)
+                        .WithMany("UserTaskAssigneds")
+                        .HasForeignKey("ApplicationUserId1");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -405,6 +450,26 @@ namespace Lab_2.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TaskUserTaskAssigned", b =>
+                {
+                    b.HasOne("Lab_2.Models.Task", null)
+                        .WithMany()
+                        .HasForeignKey("TasksID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Lab_2.Models.UserTaskAssigned", null)
+                        .WithMany()
+                        .HasForeignKey("UserTaskAssignedsID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Lab_2.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("UserTaskAssigneds");
                 });
 #pragma warning restore 612, 618
         }

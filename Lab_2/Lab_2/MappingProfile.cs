@@ -13,6 +13,7 @@ namespace Lab_2
         public MappingProfile()
         {
             CreateMap<Models.Task, TaskViewModel>().ReverseMap();
+            CreateMap<UserTaskAssigned, AssignUserTasksForUserResponse>().ReverseMap();
         }
     }
 }
