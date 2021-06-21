@@ -22,5 +22,6 @@ namespace Lab_2.Models
         public State State { get; set; }
         public DateTime CloseTime { get; set; }
         public List <UserTaskAssigned> UserTaskAssigneds { get; set; }
+
     }
 }
