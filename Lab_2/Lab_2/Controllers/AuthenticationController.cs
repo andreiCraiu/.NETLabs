@@ -5,10 +5,15 @@ using Lab_2.ViewModel.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Lab_2.Controllers
 {
@@ -19,11 +24,14 @@ namespace Lab_2.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
-        public AuthenticationController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context)
+        private readonly IConfiguration _configuration;
+        public AuthenticationController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+            ApplicationDbContext context, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _configuration = configuration;
         }
         [HttpPost]
         [Route("register")] // /api/autherization/register
@@ -39,7 +47,7 @@ namespace Lab_2.Controllers
 
             if (result.Succeeded)
             {
-                return Ok(new RegisterResponse { ConfirmationToken = user.SecurityStamp});
+                return Ok(new RegisterResponse { ConfirmationToken = user.SecurityStamp });
             }
 
             return BadRequest();
@@ -60,6 +68,42 @@ namespace Lab_2.Controllers
                 return Ok();
             }
             return BadRequest();
+        }
+
+
+        [HttpPost]
+        [Route("login")]
+        public async Task<ActionResult> Login(LoginRequest loginRequest)
+        {
+            var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginRequest.Password))
+            {
+                var claim = new[]
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName)
+                };
+
+                var signinKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:SingingKey"]));
+
+                int expirationInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiriyMinutes"]);
+                var token = new JwtSecurityToken(
+                 issuer: _configuration["Jwt:Site"],
+                 audience: _configuration["Jwt:Site"],
+                 expires: DateTime.UtcNow.AddMinutes(expirationInMinutes),
+                 signingCredentials: new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256)
+            );
+
+                return Ok(
+                    new
+                    {
+                        token = new JwtSecurityTokenHandler().WriteToken(token),
+                        expiration = token.ValidTo
+                    });
+            }
+            return Unauthorized();
+
         }
     }
 }
