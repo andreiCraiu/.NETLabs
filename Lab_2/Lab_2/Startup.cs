@@ -1,5 +1,9 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Lab_2.Data;
 using Lab_2.Models;
+using Lab_2.Validators;
+using Lab_2.ViewModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -34,6 +38,7 @@ namespace Lab_2
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc().AddFluentValidation();
             services.AddAutoMapper(typeof(MappingProfile));
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
@@ -64,8 +69,12 @@ namespace Lab_2
                     };
                 });
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+            services.AddControllersWithViews()
+                .AddFluentValidation()
+                .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
             services.AddRazorPages();
+            services.AddTransient<IValidator<TaskViewModel>, TaskValidator>();
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {

@@ -116,8 +116,9 @@ namespace Lab_2.Controllers
         /// Update a specific Task.
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
+        public async Task<ActionResult<Models.Task>> PostTask(TaskViewModel taskRequest)
         {
+            var task = _mapper.Map<Models.Task>(taskRequest);
             var taskVieModel = _mapper.Map<Models.Task>(task);
             _context.Tasks.Add(taskVieModel);
             await _context.SaveChangesAsync();

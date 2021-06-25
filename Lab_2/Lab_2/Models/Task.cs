@@ -9,16 +9,16 @@ namespace Lab_2.Models
     public class Task
     {
         public int ID { get; set; }
-        [Required]
+        //[Required]
         public string Title { get; set; }
         public string Description { get; set; }
-        [Required]
+       // [Required]
         public DateTime AddedTime { get; set; }
-        [Required]
+      //  [Required]
         public DateTime Deadline { get; set; }
-        [Required]
+      //  [Required]
         public Importance Importance { get; set; }
-        [Required]
+      //  [Required]
         public State State { get; set; }
         public DateTime CloseTime { get; set; }
         public List <UserTaskAssigned> UserTaskAssigneds { get; set; }
