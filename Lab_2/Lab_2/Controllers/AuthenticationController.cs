@@ -14,9 +14,11 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Lab_2.Controllers
 {
+   // [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -79,20 +81,23 @@ namespace Lab_2.Controllers
 
             if (user != null && await _userManager.CheckPasswordAsync(user, loginRequest.Password))
             {
-                var claim = new[]
+                var claims = new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName)
-                };
+                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            };
 
                 var signinKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:SingingKey"]));
+                Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"]));
 
                 int expirationInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiriyMinutes"]);
                 var token = new JwtSecurityToken(
                  issuer: _configuration["Jwt:Site"],
                  audience: _configuration["Jwt:Site"],
                  expires: DateTime.UtcNow.AddMinutes(expirationInMinutes),
-                 signingCredentials: new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256)
+                 signingCredentials: new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256),
+                 claims: claims
             );
 
                 return Ok(

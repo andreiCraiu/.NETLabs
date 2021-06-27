@@ -11,10 +11,33 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Identity.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Polly;
 
+using (var db = new Context())
+{
+    db.Categories.Add(new Category
+    {
+        Id = 5,
+        Name = "test"
+    });
+
+    db.Database.OpenConnection();
+    try
+    {
+        db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.Categories ON;");
+        db.SaveChanges();
+        db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.Categories OFF;");
+    }
+    finally
+    {
+        db.Database.CloseConnection();
+    }
+}
 
 namespace Lab_2.Controllers
 {
+    [Authorize(AuthenticationSchemes ="Identity.Application,Bearer")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersTasksAssigendController : ControllerBase
@@ -33,9 +56,11 @@ namespace Lab_2.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AssignTask(NewAssignTaskRequest newAssignTaskRequest, int userId)
-        { 
-            //var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Name).Value);
+        public async Task<ActionResult> AssignTask(NewAssignTaskRequest newAssignTaskRequest)
+        {
+            var a = User.Identity.IsAuthenticated;
+            var b = User.Identity.Name;
+            var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             List<Models.Task> tasksAssigned = new List<Models.Task>();
 
             newAssignTaskRequest.TasksAssiged.ForEach(tid =>
@@ -54,12 +79,12 @@ namespace Lab_2.Controllers
 
             var userTaskAssign = new UserTaskAssigned
             {
-                ApplicationUserId = userId,
+                Id = newAssignTaskRequest.ID,
+                ApplicationUser = user,
                 DateAssigned = newAssignTaskRequest.TaskAssignDateTime.GetValueOrDefault(),
                 Tasks = tasksAssigned
             };
 
-            var c = userTaskAssign.ApplicationUserId;
             _context.UserTaskAssigneds.Add(userTaskAssign);
             await _context.SaveChangesAsync();
            return Ok();
